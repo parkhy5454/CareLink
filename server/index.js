@@ -3,7 +3,12 @@ import { initDb } from './db.js'
 import { startReminderScheduler } from './reminders.js'
 
 const app = createApp()
-const PORT = process.env.API_PORT || 3001
+
+// 배포 플랫폼(Render 등)은 보통 PORT 환경변수로 포트를 지정해줘요.
+// 개발 환경(Replit)에서는 프론트(Vite, PORT=3000)와 겹치지 않게 API_PORT(기본 3001)만 사용합니다.
+const PORT = process.env.NODE_ENV === 'production'
+  ? (process.env.PORT || process.env.API_PORT || 3001)
+  : (process.env.API_PORT || 3001)
 
 initDb()
   .then(() => {

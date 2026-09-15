@@ -1,5 +1,7 @@
 import express from 'express'
 import cors from 'cors'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import authRouter from './auth.js'
 import oauthRouter from './oauth.js'
 import staffAuthRouter from './staffAuth.js'
@@ -16,6 +18,8 @@ import adminDashboardRouter from './adminDashboard.js'
 import reviewsRouter from './reviews.js'
 import facilityApplicationsRouter from './facilityApplications.js'
 import pushRouter from './push.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export function createApp() {
   const app = express()
@@ -54,6 +58,16 @@ export function createApp() {
   app.use('/api/hospital', hospitalDashboardRouter) // /api/hospital/bookings, .../:id/confirm|reject, /api/hospital/schedule
   app.use('/api/pharmacy', pharmacyDashboardRouter) // /api/pharmacy/prescriptions, .../:id/accept|reject|ready
   app.use('/api/admin', adminDashboardRouter) // /api/admin/stats, staff-accounts, bookings, prescriptions, notifications, applications
+
+  // 배포(프로덕션) 환경: `npm run build`로 만든 dist/ 폴더를 이 서버가 직접 서빙합니다.
+  if (process.env.NODE_ENV === 'production') {
+    const distPath = path.join(__dirname, '..', 'dist')
+    app.use(express.static(distPath))
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api')) return next()
+      res.sendFile(path.join(distPath, 'index.html'))
+    })
+  }
 
   return app
 }
