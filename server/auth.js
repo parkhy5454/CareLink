@@ -43,7 +43,7 @@ function issueToken(user) {
 }
 
 function publicUser(user) {
-  return { id: user.id, name: user.name, phone: user.phone, email: user.email }
+  return { id: user.id, name: user.name, phone: user.phone, email: user.email, referralCode: user.referral_code }
 }
 
 // 새 계정이 생기면 '본인' 가족 구성원 프로필을 함께 만들어둡니다 (예약 시 예약 대상으로 사용)
@@ -151,11 +151,23 @@ router.post('/verify', otpVerifyLimiter, async (req, res) => {
 
 // ───────────────────────── 이메일 + 비밀번호 ─────────────────────────
 
+// 공유용 추천인 코드를 새로 만듭니다 (충돌하면 다시 시도)
+async function generateReferralCode() {
+  for (let i = 0; i < 5; i++) {
+    const code = crypto.randomBytes(4).toString('hex').toUpperCase() // 8자리, 예: A1B2C3D4
+    const { rows } = await pool.query('SELECT id FROM users WHERE referral_code = $1', [code])
+    if (rows.length === 0) return code
+  }
+  return crypto.randomBytes(6).toString('hex').toUpperCase()
+}
+
 router.post('/email/signup', async (req, res) => {
   try {
     const email = String(req.body.email || '').trim().toLowerCase()
     const password = String(req.body.password || '')
     const name = String(req.body.name || '').trim() || email.split('@')[0]
+    const phone = req.body.phone ? normalizePhone(req.body.phone) : null
+    const referralCodeInput = String(req.body.referralCode || '').trim().toUpperCase()
 
     if (!email.includes('@') || password.length < 6) {
       return res.status(400).json({ error: '올바른 이메일과 6자 이상의 비밀번호를 입력해주세요' })
@@ -171,10 +183,26 @@ router.post('/email/signup', async (req, res) => {
       return res.status(409).json({ error: '이미 가입된 이메일이에요. 로그인해주세요' })
     }
 
+    if (phone) {
+      const { rows: phoneTaken } = await pool.query('SELECT id FROM users WHERE phone = $1', [phone])
+      if (phoneTaken.length > 0) {
+        return res.status(409).json({ error: '이미 등록된 휴대폰 번호예요' })
+      }
+    }
+
+    // 추천인 코드를 입력했다면 실제로 존재하는 코드인지 확인 (없으면 그냥 무시하고 가입은 진행)
+    let referredByUserId = null
+    if (referralCodeInput) {
+      const { rows: referrer } = await pool.query('SELECT id FROM users WHERE referral_code = $1', [referralCodeInput])
+      if (referrer.length > 0) referredByUserId = referrer[0].id
+    }
+
+    const myReferralCode = await generateReferralCode()
     const passwordHash = await bcrypt.hash(password, 10)
     const { rows } = await pool.query(
-      'INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING *',
-      [email, passwordHash, name]
+      `INSERT INTO users (email, password_hash, name, phone, referral_code, referred_by_user_id)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [email, passwordHash, name, phone, myReferralCode, referredByUserId]
     )
     const user = rows[0]
     await createSelfFamilyMember(user.id, user.name)

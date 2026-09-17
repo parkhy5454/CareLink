@@ -39,9 +39,8 @@ export const api = {
   verifyCode: (phone, code, consent = {}) =>
     request('/auth/verify', { method: 'POST', body: { phone, code, ...consent } }),
 
-  // 이메일 + 비밀번호
-  emailSignup: (name, email, password, consent = {}) =>
-    request('/auth/email/signup', { method: 'POST', body: { name, email, password, ...consent } }),
+  // 이메일 + 비밀번호 (이름/전화번호/추천인코드 포함한 통합 가입 폼)
+  emailSignup: (payload) => request('/auth/email/signup', { method: 'POST', body: payload }),
   emailLogin: (email, password) =>
     request('/auth/email/login', { method: 'POST', body: { email, password } }),
   forgotPassword: (email) => request('/auth/email/forgot-password', { method: 'POST', body: { email } }),

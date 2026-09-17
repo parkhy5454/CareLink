@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import request from 'supertest'
 import { app, setupTestDb, closeTestDb, resetTransactionalTables, seedTestFacilities } from './helpers.js'
+import { pool } from '../db.js'
 
 beforeAll(async () => {
   await setupTestDb()
@@ -99,6 +100,42 @@ describe('비밀번호 재설정', () => {
     const res = await request(app).post('/api/auth/email/forgot-password').send({ email: 'nobody@test.com' })
     expect(res.status).toBe(200)
     expect(res.body.demoCode).toBeUndefined()
+  })
+})
+
+describe('회원가입 - 전화번호/추천인 코드', () => {
+  test('가입하면 본인만의 추천인 코드가 발급된다', async () => {
+    const res = await request(app).post('/api/auth/email/signup')
+      .send({ name: '김철수', phone: '01011112222', email: 'ref1@test.com', password: 'pass1234', agreeTerms: true, agreePrivacy: true })
+    expect(res.status).toBe(200)
+    expect(res.body.user.referralCode).toMatch(/^[0-9A-F]{8}$/)
+  })
+
+  test('이미 등록된 전화번호로 가입하면 409', async () => {
+    await request(app).post('/api/auth/email/signup')
+      .send({ name: 'A', phone: '01022223333', email: 'ref2@test.com', password: 'pass1234', agreeTerms: true, agreePrivacy: true })
+    const res = await request(app).post('/api/auth/email/signup')
+      .send({ name: 'B', phone: '01022223333', email: 'ref3@test.com', password: 'pass1234', agreeTerms: true, agreePrivacy: true })
+    expect(res.status).toBe(409)
+  })
+
+  test('유효한 추천인 코드로 가입하면 추천 관계가 기록된다', async () => {
+    const referrer = await request(app).post('/api/auth/email/signup')
+      .send({ name: '추천인', phone: '01044445555', email: 'referrer-a@test.com', password: 'pass1234', agreeTerms: true, agreePrivacy: true })
+    const code = referrer.body.user.referralCode
+
+    const referred = await request(app).post('/api/auth/email/signup')
+      .send({ name: '피추천인', phone: '01066667777', email: 'referred-a@test.com', password: 'pass1234', referralCode: code, agreeTerms: true, agreePrivacy: true })
+    expect(referred.status).toBe(200)
+
+    const { rows } = await pool.query('SELECT referred_by_user_id FROM users WHERE email = $1', ['referred-a@test.com'])
+    expect(rows[0].referred_by_user_id).toBe(referrer.body.user.id)
+  })
+
+  test('존재하지 않는 추천인 코드를 입력해도 가입은 정상적으로 된다', async () => {
+    const res = await request(app).post('/api/auth/email/signup')
+      .send({ name: '아무개', phone: '01099998888', email: 'noref@test.com', password: 'pass1234', referralCode: 'NOTREAL1', agreeTerms: true, agreePrivacy: true })
+    expect(res.status).toBe(200)
   })
 })
 
