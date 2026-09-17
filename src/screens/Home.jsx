@@ -221,6 +221,8 @@ export default function Home({ user, booking, onBookingChange, onGotoOCR, onLogo
                 </div>
               </div>
 
+              <ReferralCard />
+
               <SymptomChecker onPickDepartment={(name) => { setDept(name); setQuery('') }} />
 
               {loadingBooking ? (
@@ -569,6 +571,76 @@ function SymptomChecker({ onPickDepartment }) {
           </p>
         </div>
       )}
+    </div>
+  )
+}
+
+function ReferralCard() {
+  const [code, setCode] = useState('')
+  const [referredCount, setReferredCount] = useState(null)
+  const [copied, setCopied] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api.me()
+      .then((data) => {
+        setCode(data.user.referralCode || '')
+        setReferredCount(data.user.referredCount ?? 0)
+      })
+      .catch((err) => setError(err.message))
+  }, [])
+
+  const shareText = code
+    ? `내건강 앱에서 병원 예약하고 처방전까지 한 번에! 제 추천 코드 "${code}"를 입력하고 가입해보세요.`
+    : ''
+
+  async function handleShare() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: '내건강 추천', text: shareText })
+      } catch {
+        // 사용자가 공유를 취소한 경우 등 - 조용히 무시
+      }
+    } else {
+      handleCopy()
+    }
+  }
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('복사에 실패했어요, 코드를 직접 선택해서 복사해주세요')
+    }
+  }
+
+  function handleSms() {
+    // iOS/안드로이드 둘 다 대체로 인식하는 형태예요. 눌러보고 문자 앱이 안 열리면 "공유하기"를 써주세요
+    window.location.href = `sms:?&body=${encodeURIComponent(shareText)}`
+  }
+
+  if (error) return null
+  if (!code) return null
+
+  return (
+    <div className="dash-card referral-card" style={{ marginBottom: 14 }}>
+      <div className="dash-card-title">🎁 친구 추천하기</div>
+      <p className="dash-card-sub" style={{ marginBottom: 10 }}>
+        내 추천 코드로 친구가 가입하면 서로에게 좋은 일이 생겨요 (혜택은 곧 추가될 예정이에요)
+      </p>
+      <div className="referral-code-box">{code}</div>
+      {referredCount !== null && (
+        <p className="referral-count">지금까지 {referredCount}명이 이 코드로 가입했어요</p>
+      )}
+      <div className="dash-card-actions referral-actions">
+        <button type="button" className="dash-btn-confirm" onClick={handleShare}>💬 카카오톡/공유</button>
+        <button type="button" className="dash-btn-confirm referral-sms" onClick={handleSms}>📱 문자로 보내기</button>
+      </div>
+      <button type="button" className="dash-btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={handleCopy}>
+        {copied ? '복사됐어요!' : '코드만 복사하기'}
+      </button>
     </div>
   )
 }
