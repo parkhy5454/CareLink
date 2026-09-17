@@ -1,4 +1,5 @@
 import fs from 'fs'
+import zlib from 'zlib'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { parse } from 'csv-parse'
@@ -9,10 +10,24 @@ const DATA_DIR = path.join(__dirname, '..', 'data')
 
 const BATCH_SIZE = 1000
 
-function readCsv(filePath) {
+// GitHub 웹 업로드는 파일당 25MB 제한이 있어서, 큰 CSV는 .csv.gz로 압축해서 저장해요.
+// 압축 버전이 있으면 그걸 우선 쓰고, 없으면 압축 안 된 .csv를 읽습니다.
+function resolveCsvPath(baseName) {
+  const gzPath = path.join(DATA_DIR, `${baseName}.gz`)
+  const plainPath = path.join(DATA_DIR, baseName)
+  return fs.existsSync(gzPath) ? gzPath : plainPath
+}
+
+function readCsv(baseName) {
+  const filePath = resolveCsvPath(baseName)
+  const isGz = filePath.endsWith('.gz')
+
   return new Promise((resolve, reject) => {
     const rows = []
-    fs.createReadStream(filePath)
+    let stream = fs.createReadStream(filePath)
+    if (isGz) stream = stream.pipe(zlib.createGunzip())
+
+    stream
       .pipe(parse({ columns: true, skip_empty_lines: true }))
       .on('data', (row) => rows.push(row))
       .on('end', () => resolve(rows))
@@ -27,7 +42,7 @@ function toNumOrNull(v) {
 }
 
 async function seedHospitals() {
-  const rows = await readCsv(path.join(DATA_DIR, 'hospitals.csv'))
+  const rows = await readCsv('hospitals.csv')
   console.log(`[seed] 병원 ${rows.length}건 적재 시작...`)
 
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
@@ -59,7 +74,7 @@ async function seedHospitals() {
 }
 
 async function seedPharmacies() {
-  const rows = await readCsv(path.join(DATA_DIR, 'pharmacies.csv'))
+  const rows = await readCsv('pharmacies.csv')
   console.log(`[seed] 약국 ${rows.length}건 적재 시작...`)
 
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
@@ -90,7 +105,7 @@ async function seedPharmacies() {
 }
 
 async function seedDepartments() {
-  const rows = await readCsv(path.join(DATA_DIR, 'hospital_departments.csv'))
+  const rows = await readCsv('hospital_departments.csv')
   console.log(`[seed] 진료과목 매핑 ${rows.length}건 적재 시작...`)
 
   // 존재하는 병원 코드만 남기기 (참조 무결성 오류 방지)
