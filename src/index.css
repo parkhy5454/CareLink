@@ -20,93 +20,47 @@ body{
   background:#EDEFF3;
 }
 
-/* ---------- 데모 셸(브라우저에서 프로토타입을 감싸는 껍데기) ---------- */
+/* ---------- 앱 셸: 데스크탑/모바일 구분 없이 일반적인 반응형 웹앱처럼 보이게 ---------- */
 .demo-page{
-  min-height:100%;
+  min-height:100vh;
+  min-height:100dvh;
   display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:16px;
-  padding:36px 16px 60px;
+  justify-content:center;
+  background:var(--bg);
 }
-.demo-topbar{
-  width:320px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-.demo-title{font-size:13px; font-weight:700; color:var(--ink);}
-.demo-title span{display:block; font-size:11.5px; font-weight:400; color:var(--sub); margin-top:2px;}
-.demo-reset{
-  border:1px solid var(--line); background:#fff; color:var(--sub);
-  font-size:12px; font-weight:700; padding:7px 12px; border-radius:100px; cursor:pointer;
-}
-.demo-reset:hover{color:var(--ink); border-color:#D6D9DE;}
-
 .phone{
-  width:320px;
-  height:660px;
+  width:100%;
+  max-width:460px; /* 넓은 화면에서도 모바일 UI가 과하게 늘어나지 않도록 가운데 정렬된 한 칼럼으로 */
+  min-height:100vh;
+  min-height:100dvh;
   background:var(--card);
-  border-radius:40px;
-  border:8px solid #0B0D10;
-  overflow:hidden;
   position:relative;
-  box-shadow:0 20px 40px rgba(0,0,0,0.18);
   display:flex;
   flex-direction:column;
+  box-shadow:0 0 40px rgba(0,0,0,0.04);
 }
-.statusbar{
-  height:38px;
-  flex:none;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0 22px;
-  font-size:13px;
-  font-weight:700;
-  color:var(--ink);
-  background:transparent;
+.app-logout{
+  position:absolute; top:14px; right:16px; z-index:20;
+  border:1px solid var(--line); background:rgba(255,255,255,0.92); color:var(--sub);
+  width:32px; height:32px; border-radius:50%; font-size:15px; line-height:1;
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
 }
+.app-logout:hover{color:var(--ink); border-color:#D6D9DE;}
 
-/* ── 실제 스마트폰(좁은 화면)에서는 "데모용 폰 틀"을 없애고 화면을 꽉 채웁니다 ── */
-@media (max-width: 480px){
-  html, body{
-    overflow-x:hidden;
-  }
-  .demo-page{
-    padding:0;
-    min-height:100vh;
-  }
-  .demo-topbar{
-    display:none;
-  }
-  .demo-hint{
-    display:none;
-  }
-  .phone{
-    width:100%;
-    height:100vh;
-    height:100dvh;
-    border:none;
-    border-radius:0;
-    box-shadow:none;
-  }
-  /* 목업용 가짜 시계/배터리 표시줄은 실제 기기에서 진짜 상태표시줄과 겹치므로 숨기고,
-     대신 화면 맨 위에 노치/카메라 펀치홀 영역만큼 안전 여백을 줍니다 */
-  .statusbar{
-    display:none;
-  }
-  .screen{
-    padding-top:env(safe-area-inset-top);
-  }
-  /* 홈 인디케이터가 있는 기기(iPhone X 이후)에서 하단 탭바가 안 가려지게 */
-  .tabbar{
-    padding-bottom:env(safe-area-inset-bottom);
-  }
-  /* iOS Safari는 입력창 글자가 16px보다 작으면 탭할 때 화면을 확대해버려요 */
-  .input-field, .symptom-textarea, select, textarea{
-    font-size:16px;
-  }
+/* 목업 시절의 가짜 시계/배터리 표시줄은 실제 화면에선 필요 없어서 항상 숨겨요 */
+.statusbar{display:none;}
+
+html, body{overflow-x:hidden;}
+.screen{
+  padding-top:max(16px, env(safe-area-inset-top));
+}
+/* 홈 인디케이터가 있는 기기(iPhone X 이후)에서 하단 탭바가 안 가려지게 */
+.tabbar{
+  padding-bottom:env(safe-area-inset-bottom);
+}
+/* iOS Safari는 입력창 글자가 16px보다 작으면 탭할 때 화면을 확대해버려요 */
+.input-field, .symptom-textarea, select, textarea{
+  font-size:16px;
 }
 .statusbar.dark span{color:#fff;}
 .statusbar .icons{display:flex; gap:5px; align-items:center;}

@@ -67,14 +67,10 @@ export default function App() {
 
   return (
     <div className="demo-page">
-      <div className="demo-topbar">
-        <div className="demo-title">내건강 클릭 프로토타입<span>5단계 · 보안/리뷰/입점신청 보완</span></div>
-        {isLoggedIn && (
-          <button className="demo-reset" onClick={handleLogout}>로그아웃</button>
-        )}
-      </div>
-
       <div className="phone">
+        {isLoggedIn && (
+          <button className="app-logout" onClick={handleLogout} aria-label="로그아웃">⎋</button>
+        )}
         {screen === 'loading' && <LoadingScreen />}
         {screen === 'onboarding' && (
           <Onboarding onLoggedIn={handleLoggedIn} notice={authNotice} onDismissNotice={() => setAuthNotice('')} />
@@ -99,10 +95,6 @@ export default function App() {
           />
         )}
         {screen === 'status' && <PharmacyStatus onHome={() => setScreen('home')} />}
-      </div>
-
-      <div className="demo-hint">
-        <b>흐름:</b> 로그인(전화번호/이메일/소셜) → 실제 병원 검색·예약 → 처방전 촬영/전송 → 실시간 조제 현황
       </div>
     </div>
   )
