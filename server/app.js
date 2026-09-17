@@ -24,6 +24,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export function createApp() {
   const app = express()
 
+  // Render 같은 배포 플랫폼은 요청을 프록시(리버스 프록시)를 거쳐 전달해요.
+  // 이 설정이 없으면 express-rate-limit이 모든 사용자를 같은 IP로 착각하거나 에러를 던질 수 있어요.
+  app.set('trust proxy', 1)
+
   // CORS: ALLOWED_ORIGINS(콤마로 구분)가 설정되어 있으면 그 목록만 허용, 없으면 개발 편의를 위해 전체 허용(경고 출력)
   const allowedOrigins = (process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean)
   if (allowedOrigins.length === 0) {
