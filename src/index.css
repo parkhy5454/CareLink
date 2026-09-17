@@ -70,11 +70,17 @@ body{
 
 /* ── 실제 스마트폰(좁은 화면)에서는 "데모용 폰 틀"을 없애고 화면을 꽉 채웁니다 ── */
 @media (max-width: 480px){
+  html, body{
+    overflow-x:hidden;
+  }
   .demo-page{
     padding:0;
     min-height:100vh;
   }
   .demo-topbar{
+    display:none;
+  }
+  .demo-hint{
     display:none;
   }
   .phone{
@@ -84,6 +90,22 @@ body{
     border:none;
     border-radius:0;
     box-shadow:none;
+  }
+  /* 목업용 가짜 시계/배터리 표시줄은 실제 기기에서 진짜 상태표시줄과 겹치므로 숨기고,
+     대신 화면 맨 위에 노치/카메라 펀치홀 영역만큼 안전 여백을 줍니다 */
+  .statusbar{
+    display:none;
+  }
+  .screen{
+    padding-top:env(safe-area-inset-top);
+  }
+  /* 홈 인디케이터가 있는 기기(iPhone X 이후)에서 하단 탭바가 안 가려지게 */
+  .tabbar{
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  /* iOS Safari는 입력창 글자가 16px보다 작으면 탭할 때 화면을 확대해버려요 */
+  .input-field, .symptom-textarea, select, textarea{
+    font-size:16px;
   }
 }
 .statusbar.dark span{color:#fff;}
