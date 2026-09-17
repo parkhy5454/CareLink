@@ -5,7 +5,7 @@ import HospitalMap from '../components/HospitalMap.jsx'
 const QUICK_DEPTS = ['내과', '소아청소년과', '피부과', '정형외과', '이비인후과', '치과']
 const RELATIONSHIP_OPTIONS = ['자녀', '배우자', '부모님', '형제자매', '기타']
 
-export default function Home({ user, booking, onBookingChange, onGotoOCR }) {
+export default function Home({ user, booking, onBookingChange, onGotoOCR, onLogout }) {
   const [loadingBooking, setLoadingBooking] = useState(true)
   const [toast, setToast] = useState('')
 
@@ -215,8 +215,13 @@ export default function Home({ user, booking, onBookingChange, onGotoOCR }) {
             <>
               <div className="home-header">
                 <div className="home-brand"><span className="dot"></span>내건강</div>
-                <div className="home-user">{user?.name || '회원'} 님</div>
+                <div className="home-header-right">
+                  <div className="home-user">{user?.name || '회원'} 님</div>
+                  <button type="button" className="home-logout" onClick={onLogout}>로그아웃</button>
+                </div>
               </div>
+
+              <SymptomChecker onPickDepartment={(name) => { setDept(name); setQuery('') }} />
 
               {loadingBooking ? (
                 <div className="hero-card">
@@ -312,8 +317,6 @@ export default function Home({ user, booking, onBookingChange, onGotoOCR }) {
                   </div>
                 </div>
               )}
-
-              <SymptomChecker onPickDepartment={(name) => { setDept(name); setQuery('') }} />
 
               <div className="section-label">병원 검색</div>
               <input
@@ -535,7 +538,7 @@ function SymptomChecker({ onPickDepartment }) {
           rows={2}
         />
         <button className="btn-oauth btn-primary" type="submit" disabled={loading || !text.trim()}>
-          {loading ? 'AI가 확인하고 있어요...' : 'Google AI로 진료과 확인하기'}
+          {loading ? '확인하고 있어요...' : '진료과 확인하기'}
         </button>
       </form>
 
