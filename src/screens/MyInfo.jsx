@@ -342,6 +342,8 @@ function AccountTab({ user, onLoggedOut }) {
         <div className="dash-card-sub">{user?.email || user?.phone || '연락처 정보 없음'}</div>
       </div>
 
+      <ReferralCard />
+
       <PushNotificationToggle />
 
       <button
@@ -383,6 +385,70 @@ function AccountTab({ user, onLoggedOut }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function ReferralCard() {
+  const [code, setCode] = useState('')
+  const [referredCount, setReferredCount] = useState(null)
+  const [copied, setCopied] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    api.me()
+      .then((data) => {
+        setCode(data.user.referralCode || '')
+        setReferredCount(data.user.referredCount ?? 0)
+      })
+      .catch((err) => setError(err.message))
+  }, [])
+
+  const shareText = code
+    ? `내건강 앱에서 병원 예약하고 처방전까지 한 번에! 제 추천 코드 "${code}"를 입력하고 가입해보세요.`
+    : ''
+
+  async function handleShare() {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: '내건강 추천', text: shareText })
+      } catch {
+        // 사용자가 공유를 취소한 경우 등 - 조용히 무시
+      }
+    } else {
+      handleCopy()
+    }
+  }
+
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('복사에 실패했어요, 코드를 직접 선택해서 복사해주세요')
+    }
+  }
+
+  if (error) return null
+  if (!code) return null
+
+  return (
+    <div className="dash-card referral-card" style={{ marginBottom: 14 }}>
+      <div className="dash-card-title">🎁 친구 추천하기</div>
+      <p className="dash-card-sub" style={{ marginBottom: 10 }}>
+        내 추천 코드로 친구가 가입하면 서로에게 좋은 일이 생겨요 (혜택은 곧 추가될 예정이에요)
+      </p>
+      <div className="referral-code-box">{code}</div>
+      {referredCount !== null && (
+        <p className="referral-count">지금까지 {referredCount}명이 이 코드로 가입했어요</p>
+      )}
+      <div className="dash-card-actions">
+        <button type="button" className="dash-btn-confirm" onClick={handleShare}>공유하기</button>
+        <button type="button" className="dash-btn-ghost" onClick={handleCopy}>
+          {copied ? '복사됨!' : '코드 복사'}
+        </button>
+      </div>
     </div>
   )
 }

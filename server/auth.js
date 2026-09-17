@@ -329,7 +329,8 @@ router.get('/me', authMiddleware, async (req, res) => {
     if (rows.length === 0) {
       return res.status(404).json({ error: '사용자를 찾을 수 없어요' })
     }
-    res.json({ user: publicUser(rows[0]) })
+    const { rows: refRows } = await pool.query('SELECT COUNT(*) FROM users WHERE referred_by_user_id = $1', [req.userId])
+    res.json({ user: { ...publicUser(rows[0]), referredCount: Number(refRows[0].count) } })
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: '사용자 정보를 불러오는 중 문제가 발생했어요' })
