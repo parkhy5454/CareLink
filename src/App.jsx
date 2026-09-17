@@ -63,14 +63,9 @@ export default function App() {
     setScreen('onboarding')
   }
 
-  const isLoggedIn = screen !== 'loading' && screen !== 'onboarding'
-
   return (
     <div className="demo-page">
       <div className="phone">
-        {isLoggedIn && (
-          <button className="app-logout" onClick={handleLogout} aria-label="로그아웃">⎋</button>
-        )}
         {screen === 'loading' && <LoadingScreen />}
         {screen === 'onboarding' && (
           <Onboarding onLoggedIn={handleLoggedIn} notice={authNotice} onDismissNotice={() => setAuthNotice('')} />
@@ -81,6 +76,7 @@ export default function App() {
             booking={booking}
             onBookingChange={setBooking}
             onGotoOCR={() => setScreen('ocr')}
+            onLogout={handleLogout}
           />
         )}
         {screen === 'myinfo' && <MyInfo user={user} onLoggedOut={handleLogout} />}
