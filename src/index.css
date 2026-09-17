@@ -211,6 +211,8 @@ html, body{overflow-x:hidden;}
   color:var(--blue); margin-bottom:8px;
 }
 .referral-count{font-size:12px; color:var(--sub); margin:0 0 10px; text-align:center;}
+.referral-actions{display:flex; gap:8px;}
+.referral-actions button{flex:1; font-size:12.5px;}
 .home-brand{display:flex; align-items:center; gap:8px; font-size:16px; font-weight:700; color:var(--ink);}
 .home-brand .dot{width:22px; height:22px; border-radius:7px; background:var(--blue);}
 .home-user{font-size:12px; color:var(--sub); font-weight:700;}

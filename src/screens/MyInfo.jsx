@@ -34,6 +34,8 @@ export default function MyInfo({ user, onLoggedOut }) {
             <div className="home-user">{user?.name || '회원'} 님</div>
           </div>
 
+          <ReferralCard />
+
           <div className="method-tabs" style={{ marginBottom: 16 }}>
             <button type="button" className={`method-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>기록</button>
             <button type="button" className={`method-tab ${tab === 'family' ? 'active' : ''}`} onClick={() => setTab('family')}>가족 관리</button>
@@ -342,8 +344,6 @@ function AccountTab({ user, onLoggedOut }) {
         <div className="dash-card-sub">{user?.email || user?.phone || '연락처 정보 없음'}</div>
       </div>
 
-      <ReferralCard />
-
       <PushNotificationToggle />
 
       <button
@@ -430,6 +430,11 @@ function ReferralCard() {
     }
   }
 
+  function handleSms() {
+    // iOS/안드로이드 둘 다 대체로 인식하는 형태예요. 눌러보고 문자 앱이 안 열리면 "공유하기"를 써주세요
+    window.location.href = `sms:?&body=${encodeURIComponent(shareText)}`
+  }
+
   if (error) return null
   if (!code) return null
 
@@ -443,12 +448,13 @@ function ReferralCard() {
       {referredCount !== null && (
         <p className="referral-count">지금까지 {referredCount}명이 이 코드로 가입했어요</p>
       )}
-      <div className="dash-card-actions">
-        <button type="button" className="dash-btn-confirm" onClick={handleShare}>공유하기</button>
-        <button type="button" className="dash-btn-ghost" onClick={handleCopy}>
-          {copied ? '복사됨!' : '코드 복사'}
-        </button>
+      <div className="dash-card-actions referral-actions">
+        <button type="button" className="dash-btn-confirm" onClick={handleShare}>💬 카카오톡/공유</button>
+        <button type="button" className="dash-btn-confirm referral-sms" onClick={handleSms}>📱 문자로 보내기</button>
       </div>
+      <button type="button" className="dash-btn-ghost" style={{ width: '100%', marginTop: 8 }} onClick={handleCopy}>
+        {copied ? '복사됐어요!' : '코드만 복사하기'}
+      </button>
     </div>
   )
 }
