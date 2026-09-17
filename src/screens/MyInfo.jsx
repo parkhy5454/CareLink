@@ -344,6 +344,15 @@ function AccountTab({ user, onLoggedOut }) {
 
       <PushNotificationToggle />
 
+      <button
+        type="button"
+        className="dash-btn-ghost"
+        style={{ width: '100%', padding: '12px 0', marginBottom: 14 }}
+        onClick={onLoggedOut}
+      >
+        로그아웃
+      </button>
+
       <div className="section-label">계정 삭제</div>
       <p className="drug-disclaimer" style={{ marginBottom: 10 }}>
         회원 탈퇴 시 예약/처방/가족 구성원 정보가 모두 삭제되며 복구할 수 없어요.
