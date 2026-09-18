@@ -225,10 +225,6 @@ export default function Home({ user, booking, onBookingChange, onGotoOCR, onLogo
                 </div>
               </div>
 
-              {showReferral && <ReferralCard />}
-
-              <SymptomChecker onPickDepartment={(name) => { setDept(name); setQuery('') }} />
-
               {loadingBooking ? (
                 <div className="hero-card">
                   <p style={{ margin: 0, fontSize: 13, opacity: 0.9 }}>예약 정보를 불러오는 중...</p>
@@ -313,16 +309,14 @@ export default function Home({ user, booking, onBookingChange, onGotoOCR, onLogo
                 </div>
               ) : (
                 <div className="hero-card">
-                  <div className="hero-eyebrow">전국 병원 실데이터로 검색해요</div>
-                  <div className="hero-title">아래에서 병원을 검색하고<br /><b>예약</b>을 시작해보세요</div>
-                  <div className="hero-row">
-                    <div className="info">
-                      <p>이름, 주소, 진료과목으로 검색</p>
-                      <span>예: "이내과", "강남구 피부과"</span>
-                    </div>
-                  </div>
+                  <div className="hero-eyebrow">병원 검색 후 병원 예약</div>
+                  <div className="hero-title">진료 내역서 약국 전송 후<br /><b>약 빠른 수령</b></div>
                 </div>
               )}
+
+              {showReferral && <ReferralCard />}
+
+              <SymptomChecker onPickDepartment={(name) => { setDept(name); setQuery('') }} />
 
               <div className="section-label">병원 검색</div>
               <input
