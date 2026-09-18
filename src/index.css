@@ -387,6 +387,18 @@ html, body{overflow-x:hidden;}
   cursor:pointer; transition:border-color .12s ease, transform .12s ease;
 }
 .other-card:active{transform:scale(0.99);}
+.other-card.active{border-color:var(--blue); background:#EAF1FF;}
+
+.pharmacy-selected{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  background:#EAF1FF; border:1.5px solid var(--blue); border-radius:12px; padding:12px 14px; margin-bottom:4px;
+}
+.pharmacy-selected .txt p{margin:0; font-size:13.5px; font-weight:700; color:var(--ink);}
+.pharmacy-selected .txt span{font-size:11.5px; color:var(--sub);}
+.pharmacy-selected-badge{
+  background:var(--blue); color:#fff; font-size:11px; font-weight:700; padding:4px 10px; border-radius:100px; flex:none;
+}
+.pharmacy-option-list{max-height:280px; overflow-y:auto;}
 .other-card:hover{border-color:#C9D2E0;}
 .other-ico{width:38px; height:38px; border-radius:10px; background:var(--mint-bg); flex:none; display:flex; align-items:center; justify-content:center; color:#0A8F70; font-weight:900; font-size:15px;}
 .other-card .txt{flex:1;}

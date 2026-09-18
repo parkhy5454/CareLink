@@ -11,29 +11,54 @@ export default function PrescriptionOCR({ booking, onBack, onSent }) {
   const [aiNotConfigured, setAiNotConfigured] = useState(false)
 
   const [pharmacy, setPharmacy] = useState(null)
+  const [pharmacyOptions, setPharmacyOptions] = useState([])
+  const [pharmacyQuery, setPharmacyQuery] = useState('')
+  const [pharmacySearching, setPharmacySearching] = useState(false)
+  const [pharmacyError, setPharmacyError] = useState('')
   const [sending, setSending] = useState(false)
   const [sendError, setSendError] = useState('')
 
   const fileInputRef = useRef(null)
 
+  // 병원 위치 기준으로 가까운 약국부터 보여줘요 (사용자가 직접 골라서 보낼 수 있게)
   useEffect(() => {
-    async function findPharmacy() {
+    async function loadNearbyPharmacies() {
+      setPharmacySearching(true)
+      setPharmacyError('')
       try {
-        if (booking?.sigungu) {
-          const data = await api.searchPharmacies({ sigungu: booking.sigungu, limit: 1 })
-          if (data.pharmacies[0]) {
-            setPharmacy(data.pharmacies[0])
-            return
-          }
-        }
-        const fallback = await api.searchPharmacies({ limit: 1 })
-        setPharmacy(fallback.pharmacies[0] || null)
-      } catch {
-        setPharmacy(null)
+        const params = booking?.lat && booking?.lng
+          ? { lat: booking.lat, lng: booking.lng, limit: 10 }
+          : booking?.sigungu
+            ? { sigungu: booking.sigungu, limit: 10 }
+            : { limit: 10 }
+        const data = await api.searchPharmacies(params)
+        setPharmacyOptions(data.pharmacies)
+      } catch (err) {
+        setPharmacyError(err.message)
+      } finally {
+        setPharmacySearching(false)
       }
     }
-    findPharmacy()
+    loadNearbyPharmacies()
   }, [booking])
+
+  async function handlePharmacySearch() {
+    setPharmacySearching(true)
+    setPharmacyError('')
+    try {
+      const params = pharmacyQuery.trim()
+        ? { q: pharmacyQuery.trim(), limit: 10 }
+        : booking?.lat && booking?.lng
+          ? { lat: booking.lat, lng: booking.lng, limit: 10 }
+          : { limit: 10 }
+      const data = await api.searchPharmacies(params)
+      setPharmacyOptions(data.pharmacies)
+    } catch (err) {
+      setPharmacyError(err.message)
+    } finally {
+      setPharmacySearching(false)
+    }
+  }
 
   async function handleFileSelected(e) {
     const file = e.target.files?.[0]
@@ -82,7 +107,7 @@ export default function PrescriptionOCR({ booking, onBack, onSent }) {
   async function handleSend() {
     if (sending) return
     if (!pharmacy) {
-      setSendError('전송할 약국을 찾지 못했어요. 잠시 후 다시 시도해주세요')
+      setSendError('전송할 약국을 먼저 선택해주세요')
       return
     }
     setSending(true)
@@ -99,7 +124,6 @@ export default function PrescriptionOCR({ booking, onBack, onSent }) {
     }
   }
 
-  const pharmacyLabel = pharmacy ? `${pharmacy.name} (${pharmacy.sigungu})` : '약국을 찾는 중...'
   const patientName = analysis?.patientName || booking?.patient_name || '환자'
   const hospitalName = analysis?.hospitalName || booking?.hospital_name || '병원'
 
@@ -196,8 +220,62 @@ export default function PrescriptionOCR({ booking, onBack, onSent }) {
               </div>
               <div className="field-row"><span>환자명</span><span>{patientName}</span></div>
               <div className="field-row"><span>병원</span><span>{hospitalName}</span></div>
-              <div className="field-row"><span>전송할 약국</span><span>{pharmacyLabel}</span></div>
-              <div className="eta-strip">
+
+              <div className="section-label" style={{ marginTop: 14 }}>전송할 약국을 선택해주세요</div>
+              {pharmacy && (
+                <div className="pharmacy-selected">
+                  <div className="txt">
+                    <p>{pharmacy.name}</p>
+                    <span>
+                      {pharmacy.sido} {pharmacy.sigungu}
+                      {pharmacy.distance_km != null ? ` · ${pharmacy.distance_km.toFixed(1)}km` : ''}
+                    </span>
+                  </div>
+                  <span className="pharmacy-selected-badge">선택됨</span>
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: 8, margin: '8px 0' }}>
+                <input
+                  className="input-field"
+                  style={{ flex: 1 }}
+                  placeholder="약국 이름 또는 주소로 검색"
+                  value={pharmacyQuery}
+                  onChange={(e) => setPharmacyQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePharmacySearch()}
+                />
+                <button type="button" className="dept-chip" onClick={handlePharmacySearch} disabled={pharmacySearching}>
+                  {pharmacySearching ? '검색중' : '검색'}
+                </button>
+              </div>
+
+              {pharmacyError && <p className="field-error">{pharmacyError}</p>}
+              {!pharmacySearching && pharmacyOptions.length === 0 && !pharmacyError && (
+                <p className="search-status">주변 약국을 찾지 못했어요. 이름으로 검색해보세요</p>
+              )}
+
+              <div className="pharmacy-option-list">
+                {pharmacyOptions.map((p) => (
+                  <div
+                    key={p.code}
+                    className={`other-card ${pharmacy?.code === p.code ? 'active' : ''}`}
+                    onClick={() => setPharmacy(p)}
+                  >
+                    <div className="other-ico">{p.name.slice(0, 1)}</div>
+                    <div className="txt">
+                      <p>{p.name}</p>
+                      <span>
+                        {p.sido} {p.sigungu}
+                        {p.distance_km != null ? ` · ${p.distance_km.toFixed(1)}km` : ''}
+                        {p.phone ? ` · ${p.phone}` : ''}
+                      </span>
+                    </div>
+                    <div className="chev">{pharmacy?.code === p.code ? '✓' : '›'}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="eta-strip" style={{ marginTop: 14 }}>
                 <span className="l">진료 종료 예상 시간과 비교</span>
                 <span className="r">10분 후 조제 완료</span>
               </div>

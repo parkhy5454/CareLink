@@ -11,7 +11,7 @@ const VALID_SLOTS = new Set(allSlotLabels())
 router.get('/latest', authMiddleware, async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT b.*, h.sido, h.sigungu, h.address
+      `SELECT b.*, h.sido, h.sigungu, h.address, h.lat, h.lng
        FROM bookings b
        LEFT JOIN hospitals h ON h.code = b.hospital_code
        WHERE b.user_id = $1
@@ -80,7 +80,7 @@ router.post('/', authMiddleware, async (req, res) => {
       [req.userId, hospital.code, hospital.name, appointmentLabel, bookingCode, patient.id, patient.name]
     )
 
-    res.json({ booking: { ...rows[0], sido: hospital.sido, sigungu: hospital.sigungu, address: hospital.address } })
+    res.json({ booking: { ...rows[0], sido: hospital.sido, sigungu: hospital.sigungu, address: hospital.address, lat: hospital.lat, lng: hospital.lng } })
   } catch (err) {
     if (err.code === '23505') {
       // 동시에 같은 시간을 예약하려던 경쟁 상황 (DB 유니크 제약으로 최종 방어)
