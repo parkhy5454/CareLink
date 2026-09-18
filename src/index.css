@@ -197,11 +197,17 @@ html, body{overflow-x:hidden;}
 /* ---------- 홈 ---------- */
 .home{padding:20px 20px 16px; flex:1; overflow-y:auto; background:var(--bg);}
 .home-header{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px;}
-.home-header-right{display:flex; align-items:center; gap:10px;}
+.home-header-right{display:flex; align-items:center; gap:8px;}
 .home-logout{
   border:1px solid var(--line); background:#fff; color:var(--sub);
   font-size:11.5px; font-weight:700; padding:6px 12px; border-radius:100px; cursor:pointer;
 }
+.home-referral-btn{
+  border:1px solid var(--blue); background:#EAF1FF; color:var(--blue);
+  font-size:11.5px; font-weight:700; padding:6px 10px; border-radius:100px; cursor:pointer;
+  white-space:nowrap;
+}
+.home-referral-btn:hover{background:var(--blue); color:#fff;}
 .home-logout:hover{color:var(--ink); border-color:#D6D9DE;}
 
 /* ── 친구 추천 카드 ── */

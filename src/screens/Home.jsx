@@ -7,6 +7,7 @@ const RELATIONSHIP_OPTIONS = ['자녀', '배우자', '부모님', '형제자매'
 
 export default function Home({ user, booking, onBookingChange, onGotoOCR, onLogout }) {
   const [loadingBooking, setLoadingBooking] = useState(true)
+  const [showReferral, setShowReferral] = useState(false)
   const [toast, setToast] = useState('')
 
   const [query, setQuery] = useState('')
@@ -216,12 +217,15 @@ export default function Home({ user, booking, onBookingChange, onGotoOCR, onLogo
               <div className="home-header">
                 <div className="home-brand"><span className="dot"></span>내건강</div>
                 <div className="home-header-right">
+                  <button type="button" className="home-referral-btn" onClick={() => setShowReferral((v) => !v)}>
+                    🎁 친구 추천
+                  </button>
                   <div className="home-user">{user?.name || '회원'} 님</div>
                   <button type="button" className="home-logout" onClick={onLogout}>로그아웃</button>
                 </div>
               </div>
 
-              <ReferralCard />
+              {showReferral && <ReferralCard />}
 
               <SymptomChecker onPickDepartment={(name) => { setDept(name); setQuery('') }} />
 
