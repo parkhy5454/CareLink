@@ -310,7 +310,7 @@ export default function Home({ user, booking, onBookingChange, onGotoOCR, onLogo
               ) : (
                 <div className="hero-card">
                   <div className="hero-eyebrow">병원 검색 후 병원 예약</div>
-                  <div className="hero-title">진료 내역서 약국 전송 후<br /><b>약 빠른 수령</b></div>
+                  <div className="hero-title">진료 내역서 약국 전송 후 <b>약 빠른 수령</b></div>
                 </div>
               )}
 
